@@ -41,6 +41,12 @@ pul_6 = 25
 dir_6 = 8
 ena_6 = 7
 
+# feel free to rename
+# furthest aka the one farthest from u on the rack
+limit_switch_furthest = 21
+limit_switch_middle = 20
+limit_switch_closest = 16
+
 motors = {
     0: {"pulse": pul_1, "dir": dir_1, "enable": ena_1},
     1: {"pulse": pul_2, "dir": dir_2, "enable": ena_2},
@@ -91,7 +97,7 @@ def translate_steps(distance):
         time.sleep(wait_ena_s)
     
         # Step 2: Set DIR; DIR must be ahead of PUL effective edge by 2us to ensure correct direction
-        if motor_degree >= 0:
+        if distance >= 0:
             GPIO.output(motors[motor_num]["dir"], True)
         else:
             GPIO.output(motors[motor_num]["dir"], False)
