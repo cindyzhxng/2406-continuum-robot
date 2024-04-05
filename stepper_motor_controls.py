@@ -7,8 +7,8 @@ motor_step_size = 1.8
 microsteps = 8
 steps_per_rev = 360/(motor_step_size)*microsteps
 pitch_circumference = math.pi * 12 # mm
-distance_per_step = pitch_circumference / steps_per_rev * gear_ratio # in mm per step
 gear_ratio = 40/12
+distance_per_step = pitch_circumference / steps_per_rev * gear_ratio # in mm per step
 wait_time_s = 0.0025 # frequency of 200Hz with period of 5ms
 
 wait_dir_s = 0.001 # 1 ms
@@ -21,25 +21,25 @@ pul_1 = 2
 dir_1 = 3
 ena_1 = 4
 
-pul_2 = 17
-dir_2 = 27
-ena_2 = 22
+pul_3 = 17
+dir_3 = 27
+ena_3 = 22
 
-pul_3 = 10
-dir_3 = 9
-ena_3 = 11
+pul_4 = 10
+dir_4 = 9
+ena_4 = 11
 
-pul_4 = 5
-dir_4 = 6
-ena_4 = 13
+pul_6 = 5
+dir_6 = 6
+ena_6 = 13
 
-pul_5 = 14
-dir_5 = 15
-ena_5 = 18
+pul_2 = 14
+dir_2 = 15
+ena_2 = 18
 
-pul_6 = 25
-dir_6 = 8
-ena_6 = 7
+pul_5 = 25
+dir_5 = 8
+ena_5 = 7
 
 # feel free to rename
 # furthest aka the one farthest from u on the rack
