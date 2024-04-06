@@ -71,7 +71,8 @@ for _, pins in motors.items():
 # if positive degree --> rotate one direction
 # if negative degree --> rotate in other direction
 def turn_degree(degrees):
-    for motor_num, motor_degree in degrees.iter():
+    for motor_num in range(len(degrees)):
+        motor_degree = degrees[motor_num]
         # Step 1: Set ENA to HIGH; ENA must be ahead of DIR by at least 200ms
         GPIO.output(motors[motor_num]["enable"], True)
     
@@ -113,8 +114,28 @@ def translate_steps(distance):
             GPIO.output(pulse_pin,False)
             time.sleep(wait_time_s)
 
+# 0 is Rot_1
+# 1 is Tra_1
+# 2 is Rot_2
+# 3 is Tra_2
+# 4 is Rot_3
+# 5 is Tra_3
+
+# trans default is backward
 try:
-    turn_degree([90,0,0,0,0,0])
+
+    # turn_degree([0,90,0,0,0,0])
+    # turn_degree([90,0,0,0,0,0])
+    # turn_degree([0,0,0,0,90,0])
+
+    # turn_degree([0,90,0,90,0,90])
+    motion_list = [
+        [0,120,0,180,0,180],
+    ]
+
+    for motion in motion_list:
+        turn_degree(motion)
+
     time.sleep(3)
     # shut down pins
     for motor_num in range(6):
