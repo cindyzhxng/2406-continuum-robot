@@ -2,6 +2,7 @@
 import RPi.GPIO as GPIO
 import time
 import math
+from system_config import *
 
 motor_step_size = 1.8
 microsteps = 8
@@ -48,16 +49,16 @@ limit_switch_middle = 20
 limit_switch_closest = 16
 
 motors = {
-    0: {"pulse": pul_1, "dir": dir_1, "enable": ena_1},
-    1: {"pulse": pul_2, "dir": dir_2, "enable": ena_2},
-    2: {"pulse": pul_3, "dir": dir_3, "enable": ena_3},
-    3: {"pulse": pul_4, "dir": dir_4, "enable": ena_4},
-    4: {"pulse": pul_5, "dir": dir_5, "enable": ena_5},
-    5: {"pulse": pul_6, "dir": dir_6, "enable": ena_6},
+    TRA_1: {"pulse": pul_1, "dir": dir_1, "enable": ena_1},
+    ROT_1: {"pulse": pul_2, "dir": dir_2, "enable": ena_2},
+    TRA_2: {"pulse": pul_4, "dir": dir_4, "enable": ena_4},
+    ROT_2: {"pulse": pul_3, "dir": dir_3, "enable": ena_3},
+    TRA_3: {"pulse": pul_5, "dir": dir_5, "enable": ena_5},
+    ROT_3: {"pulse": pul_6, "dir": dir_6, "enable": ena_6},
 }
 
 # GPIO output
-for pins in motors.items():
+for _, pins in motors.items():
     GPIO.setup(pins["pulse"], GPIO.OUT)
     GPIO.setup(pins["dir"], GPIO.OUT)
     GPIO.setup(pins["enable"], GPIO.OUT)
@@ -115,11 +116,14 @@ def translate_steps(distance):
 try:
     turn_degree([90,0,0,0,0,0])
     time.sleep(3)
+    # shut down pins
+    for motor_num in range(6):
+        GPIO.output(motors[motor_num]["pulse"],False)
     while True:
-        # shut down pins
-        for motor_num in range(6):
-            GPIO.output(motors[motor_num]["pulse"],False)
+        continue
+        
 except KeyboardInterrupt:
     print("Ctrl+C detected. Cleaning up GPIO.")
-    GPIO.output(pul_1,False)
+    for pul in [pul_1, pul_2, pul_3, pul_4, pul_5, pul_6]:
+        GPIO.output(pul,False)
     # GPIO.cleanup()
