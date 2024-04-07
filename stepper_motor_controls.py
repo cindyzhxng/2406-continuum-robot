@@ -2,15 +2,19 @@
 import RPi.GPIO as GPIO
 import time
 import math
+import numpy as np
 from system_config import *
 
 motor_step_size = 1.8
 microsteps = 8
+D = 40
+d = 12
 steps_per_rev = 360/(motor_step_size)*microsteps
 pitch_circumference = math.pi * 40
-gear_ratio = 40/12
+gear_ratio = D/d
 # distance_per_step = pitch_circumference / steps_per_rev * gear_ratio # in mm per step
 wait_time_s = 0.0025 # frequency of 200Hz with period of 5ms
+
 
 wait_dir_s = 0.001 # 1 ms
 wait_ena_s = 0.2 # 200ms
@@ -47,44 +51,55 @@ def turn_degree(degrees):
         motor_degree = degrees[motor_num]
         # Step 1: Set ENA to HIGH; ENA must be ahead of DIR by at least 200ms
         GPIO.output(motors[motor_num]["enable"], True)
-    
-        # Step 2: Set DIR; DIR must be ahead of PUL effective edge by 2us to ensure correct direction
-        if motor_degree >= 0:
-            GPIO.output(motors[motor_num]["dir"], True)
-        else:
-            GPIO.output(motors[motor_num]["dir"], False)
-        time.sleep(wait_dir_s)
 
         # Step 3: Pulse the proper amount
         num_steps = math.ceil(gear_ratio * motor_degree/360 * steps_per_rev)
-        pulse_pin = motors[motor_num]["pulse"]
-        for _ in range(num_steps):
-            GPIO.output(pulse_pin,True)
-            time.sleep(wait_time_s)
-            GPIO.output(pulse_pin,False)
-            time.sleep(wait_time_s)
+        step_pin(motor_num, num_steps, DEFAULT_FREQ)
 
-def translate_steps(distance):
-    for motor_num, motor_translation in distance.items():
-        # Step 1: Set ENA to HIGH; ENA must be ahead of DIR by at least 200ms
-        GPIO.output(motors[motor_num]["enable"], True)
-        time.sleep(wait_ena_s)
+def translate_steps(distances):
+    # convert distaces to degrees
+    degrees = np.array(distances)*gear_ratio/(D/2)
+    turn_degree(degrees)
+
+def step_pin(motor_ID, num_steps, step_freq=DEFAULT_FREQ):
+    pulse_pin = motors[motor_ID]["pulses"]
+    if num_steps >= 0:
+        GPIO.output(motors[motor_ID]["dir"], False)
+    else:
+        GPIO.output(motors[motor_ID]["dir"], True)
+        
+    # Set DIR; DIR must be ahead of PUL effective edge by 2us to ensure correct direction
+    time.sleep(wait_dir_s)
+    for _ in range(math.fabs(num_steps)):
+        GPIO.output(pulse_pin,True)
+        time.sleep(1/step_freq)
+        GPIO.output(pulse_pin,False)
+        time.sleep(1/step_freq)
+
+def home_translation(stages = [3, 2, 1]):
+    print("-----------TRANSLATION HOMING STARTED-----------")
+    motor_ID_dict = {3: TRA_3, 2: TRA_2, 1: TRA_1}
+    limit_dict = {3: LIMIT_SWITCH_3, 2: LIMIT_SWITCH_2, 1: LIMIT_SWITCH_1}
+    for stage in stages:
+        limit_pin = limit_dict[stage]
+        while True:
+            while GPIO.input(limit_pin) == GPIO.HIGH:
+                step_pin(motor_ID_dict[stage], -1, DEFAULT_FREQ)
+            count = 0
+            while count < 4:
+                time.sleep(10e-3)
+                if GPIO.input(limit_pin) == GPIO.LOW:
+                    count += 1
+                if GPIO.input(limit_pin) == GPIO.HIGH:
+                    break
+            if count == 3:
+                break
+        print(f"Stage {stage}: Translation Homed Successfully")
+    print("-----------TRANSLATION HOMING COMPLETED-----------")
+                
+        
+        
     
-        # Step 2: Set DIR; DIR must be ahead of PUL effective edge by 2us to ensure correct direction
-        if motor_translation >= 0:
-            GPIO.output(motors[motor_num]["dir"], True)
-        else:
-            GPIO.output(motors[motor_num]["dir"], False)
-        time.sleep(wait_dir_s)
-
-        # Step 3: Pulse the proper amount
-        num_steps = math.ceil(math.fabs(motor_translation) * steps_per_rev * gear_ratio / pitch_circumference)
-        pulse_pin = motors[motor_num]["pulse"]
-        for _ in range(num_steps):
-            GPIO.output(pulse_pin,True)
-            time.sleep(wait_time_s)
-            GPIO.output(pulse_pin,False)
-            time.sleep(wait_time_s)
 
 # 0 is Rot_1
 # 1 is Tra_1
