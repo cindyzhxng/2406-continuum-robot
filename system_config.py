@@ -36,6 +36,8 @@ LIMIT_SWITCH_1 = 16
 
 # speeds
 DEFAULT_FREQ = 200 #Hz
+MANUAL_FREQ = 5 * DEFAULT_FREQ
 
+NUM_MANUAL_STEP = 10
 # GPIO pins still available to use
 # GPIO: 19, 26, 23, 24, 12, 16, 20 21

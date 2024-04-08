@@ -53,7 +53,7 @@ def turn_degree(degrees):
         GPIO.output(motors[motor_num]["enable"], True)
 
         # Step 3: Pulse the proper amount
-        num_steps = math.ceil(gear_ratio * motor_degree/360 * steps_per_rev)
+        num_steps = int(math.ceil(gear_ratio * motor_degree/360 * steps_per_rev))
         step_pin(motor_num, num_steps, DEFAULT_FREQ)
 
 def translate_steps(distances):
@@ -62,7 +62,7 @@ def translate_steps(distances):
     turn_degree(degrees)
 
 def step_pin(motor_ID, num_steps, step_freq=DEFAULT_FREQ):
-    pulse_pin = motors[motor_ID]["pulses"]
+    pulse_pin = motors[motor_ID]["pulse"]
     if num_steps >= 0:
         GPIO.output(motors[motor_ID]["dir"], False)
     else:
@@ -70,7 +70,7 @@ def step_pin(motor_ID, num_steps, step_freq=DEFAULT_FREQ):
         
     # Set DIR; DIR must be ahead of PUL effective edge by 2us to ensure correct direction
     time.sleep(wait_dir_s)
-    for _ in range(math.fabs(num_steps)):
+    for _ in range(abs(num_steps)):
         GPIO.output(pulse_pin,True)
         time.sleep(1/step_freq)
         GPIO.output(pulse_pin,False)
@@ -109,32 +109,33 @@ def home_translation(stages = [3, 2, 1]):
 # 5 is Tra_3
 
 # trans default is backward
-try:
+if __name__ == "__main__":
+    try:
 
-    # turn_degree([0,90,0,0,0,0])
-    # turn_degree([90,0,0,0,0,0])
-    # turn_degree([0,0,0,0,90,0])
+        # turn_degree([0,90,0,0,0,0])
+        # turn_degree([90,0,0,0,0,0])
+        # turn_degree([0,0,0,0,90,0])
 
-    # turn_degree([0,90,0,90,0,90])
-    # motion_list = [
-    #     [0,120,0,180,0,180],
-    # ]
+        # turn_degree([0,90,0,90,0,90])
+        # motion_list = [
+        #     [0,120,0,180,0,180],
+        # ]
 
-    # for motion in motion_list:
-    #     turn_degree(motion)
+        # for motion in motion_list:
+        #     turn_degree(motion)
 
-    motion_list = {TRA_1:-30, ROT_1: 0, TRA_2: 0, ROT_2: 0,TRA_3: 0,ROT_3: 0}
-    translate_steps(motion_list)
+        motion_list = {TRA_1:-30, ROT_1: 0, TRA_2: 0, ROT_2: 0,TRA_3: 0,ROT_3: 0}
+        translate_steps(motion_list)
 
-    time.sleep(3)
-    # shut down pins
-    for motor_num in range(6):
-        GPIO.output(motors[motor_num]["pulse"],False)
-    while True:
-        continue
-        
-except KeyboardInterrupt:
-    print("Ctrl+C detected. Cleaning up GPIO.")
-    for pul in [PUL_1, PUL_2, PUL_3, PUL_4, PUL_5, PUL_6]:
-        GPIO.output(pul,False)
-    # GPIO.cleanup()
+        time.sleep(3)
+        # shut down pins
+        for motor_num in range(6):
+            GPIO.output(motors[motor_num]["pulse"],False)
+        while True:
+            continue
+            
+    except KeyboardInterrupt:
+        print("Ctrl+C detected. Cleaning up GPIO.")
+        for pul in [PUL_1, PUL_2, PUL_3, PUL_4, PUL_5, PUL_6]:
+            GPIO.output(pul,False)
+        # GPIO.cleanup()
