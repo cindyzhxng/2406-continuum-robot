@@ -76,7 +76,13 @@ def step_pin(motor_ID, num_steps, step_freq=DEFAULT_FREQ):
         GPIO.output(pulse_pin,False)
         time.sleep(1/step_freq)
 
-def home_translation(stages = [3, 2, 1]):
+def home_robot():
+    home_translation()
+    home_rotation()
+
+def home_translation(stages : list[int] = [3, 2, 1]):
+    if not all(isinstance(stage, int) for stage in stages):
+        raise TypeError("All elements of 'stages' must be of type int")
     print("-----------TRANSLATION HOMING STARTED-----------")
     motor_ID_dict = {3: TRA_3, 2: TRA_2, 1: TRA_1}
     limit_dict = {3: LIMIT_SWITCH_3, 2: LIMIT_SWITCH_2, 1: LIMIT_SWITCH_1}
@@ -96,33 +102,23 @@ def home_translation(stages = [3, 2, 1]):
                 break
         print(f"Stage {stage}: Translation Homed Successfully")
     print("-----------TRANSLATION HOMING COMPLETED-----------")
-                
-        
-        
-    
 
-# 0 is Rot_1
-# 1 is Tra_1
-# 2 is Rot_2
-# 3 is Tra_2
-# 4 is Rot_3
-# 5 is Tra_3
+def home_rotation(stages : list[int] = [3, 2, 1]):
+    if not all(isinstance(stage, int) for stage in stages):
+        raise TypeError("All elements of 'stages' must be of type int")
+    print("-----------ROTATION HOMING STARTED-----------")
+    motor_ID_dict = {3: TRA_3, 2: TRA_2, 1: TRA_1}
 
-# trans default is backward
+    #TODO: implement keyboard termination
+    key_board_not_pressed = True
+    for stage in stages:
+        while key_board_not_pressed:
+            step_pin(motor_ID_dict[stage], 1, DEFAULT_FREQ)
+        print(f"Stage {stage}: Rotation Homed Finished")
+        # confirm moving on or continue the homing
+    print("-----------ROTATION HOMING COMPLETED-----------")
+
 try:
-
-    # turn_degree([0,90,0,0,0,0])
-    # turn_degree([90,0,0,0,0,0])
-    # turn_degree([0,0,0,0,90,0])
-
-    # turn_degree([0,90,0,90,0,90])
-    # motion_list = [
-    #     [0,120,0,180,0,180],
-    # ]
-
-    # for motion in motion_list:
-    #     turn_degree(motion)
-
     motion_list = {TRA_1:-30, ROT_1: 0, TRA_2: 0, ROT_2: 0,TRA_3: 0,ROT_3: 0}
     translate_steps(motion_list)
 
@@ -137,4 +133,3 @@ except KeyboardInterrupt:
     print("Ctrl+C detected. Cleaning up GPIO.")
     for pul in [PUL_1, PUL_2, PUL_3, PUL_4, PUL_5, PUL_6]:
         GPIO.output(pul,False)
-    # GPIO.cleanup()
