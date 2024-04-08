@@ -2,6 +2,7 @@
 import RPi.GPIO as GPIO
 import time
 import math
+import tty, sys, termios
 import numpy as np
 from system_config import *
 
@@ -41,6 +42,13 @@ for _, pins in motors.items():
 GPIO.setup(LIMIT_SWITCH_1, GPIO.IN)
 GPIO.setup(LIMIT_SWITCH_2, GPIO.IN)
 GPIO.setup(LIMIT_SWITCH_3, GPIO.IN)
+
+# Save the original terminal settings
+original_settings = termios.tcgetattr(sys.stdin)
+
+# set-up keyboard input
+filedescriptors = termios.tcgetattr(sys.stdin)
+tty.setcbreak(sys.stdin)
 
 # function that takes array of degrees for each motor to turn
 # and then turns that amt -> translates to number of steps
@@ -87,12 +95,14 @@ def home_translation(stages = [3, 2, 1]):
     motor_ID_dict = {3: TRA_3, 2: TRA_2, 1: TRA_1}
     limit_dict = {3: LIMIT_SWITCH_3, 2: LIMIT_SWITCH_2, 1: LIMIT_SWITCH_1}
     for stage in stages:
+        print(f"Stage {stage}: Translation Homeing Started")
         limit_pin = limit_dict[stage]
         while True:
             while GPIO.input(limit_pin) == GPIO.HIGH:
-                step_pin(motor_ID_dict[stage], -1, DEFAULT_FREQ)
+                step_pin(motor_ID_dict[stage], -1, 4*DEFAULT_FREQ)
             count = 0
-            while count < 4:
+            while count < 3:
+                print(f"entered: count = {count}")
                 time.sleep(10e-3)
                 if GPIO.input(limit_pin) == GPIO.LOW:
                     count += 1
@@ -107,13 +117,23 @@ def home_rotation(stages : list[int] = [3, 2, 1]):
     if not all(isinstance(stage, int) for stage in stages):
         raise TypeError("All elements of 'stages' must be of type int")
     print("-----------ROTATION HOMING STARTED-----------")
-    motor_ID_dict = {3: TRA_3, 2: TRA_2, 1: TRA_1}
-
-    #TODO: implement keyboard termination
-    key_board_not_pressed = True
+    motor_ID_dict = {3: ROT_3, 2: ROT_2, 1: ROT_1}
     for stage in stages:
-        while key_board_not_pressed:
-            step_pin(motor_ID_dict[stage], 1, DEFAULT_FREQ)
+        print(f"Stage {stage}: Rotation Homing Started. Press any keys to stop...")
+        try:
+            while True:
+                step_pin(motor_ID_dict[stage], 1, 4*DEFAULT_FREQ)
+                # print("1")
+        except KeyboardInterrupt:
+            pass
+
+            # try:
+            #     keyboard_press=sys.stdin.read(1)[0]
+            # except IndexError:
+            #     continue
+            # if keyboard_press != "":
+            #     break
+            
         print(f"Stage {stage}: Rotation Homed Finished")
         # confirm moving on or continue the homing
     print("-----------ROTATION HOMING COMPLETED-----------")
@@ -133,5 +153,8 @@ if __name__ == "__main__":
             
     except KeyboardInterrupt:
         print("Ctrl+C detected. Cleaning up GPIO.")
+        
+        # Restore the original terminal settings
+        termios.tcsetattr(sys.stdin, termios.TCSANOW, original_settings)
         for pul in [PUL_1, PUL_2, PUL_3, PUL_4, PUL_5, PUL_6]:
             GPIO.output(pul,False)
