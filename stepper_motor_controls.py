@@ -46,10 +46,6 @@ GPIO.setup(LIMIT_SWITCH_3, GPIO.IN)
 # Save the original terminal settings
 original_settings = termios.tcgetattr(sys.stdin)
 
-# set-up keyboard input
-filedescriptors = termios.tcgetattr(sys.stdin)
-tty.setcbreak(sys.stdin)
-
 # function that takes array of degrees for each motor to turn
 # and then turns that amt -> translates to number of steps
 # if positive degree --> rotate one direction
@@ -57,20 +53,22 @@ tty.setcbreak(sys.stdin)
 def turn_degree(degrees):
     for motor_num in range(len(degrees)):
         motor_degree = degrees[motor_num]
-        # Step 1: Set ENA to HIGH; ENA must be ahead of DIR by at least 200ms
-        GPIO.output(motors[motor_num]["enable"], True)
 
         # Step 3: Pulse the proper amount
         num_steps = int(math.ceil(gear_ratio * motor_degree/360 * steps_per_rev))
-        step_pin(motor_num, num_steps, DEFAULT_FREQ)
+        step_pin(motor_num, num_steps, 5*DEFAULT_FREQ)
 
 def translate_steps(distances):
     # convert distaces to degrees
-    degrees = np.array(distances)*gear_ratio/(D/2)
+    degrees = np.array(distances)/(D/2)*(180/math.pi)
     turn_degree(degrees)
 
 def step_pin(motor_ID, num_steps, step_freq=DEFAULT_FREQ):
     pulse_pin = motors[motor_ID]["pulse"]
+    
+    # Step 1: Set ENA to HIGH; ENA must be ahead of DIR by at least 200ms
+    GPIO.output(motors[motor_ID]["enable"], True)
+
     if num_steps >= 0:
         GPIO.output(motors[motor_ID]["dir"], False)
     else:
@@ -141,7 +139,7 @@ def home_rotation(stages : list[int] = [3, 2, 1]):
 # trans default is backward
 if __name__ == "__main__":
     try:
-        motion_list = {TRA_1:-30, ROT_1: 0, TRA_2: 0, ROT_2: 0,TRA_3: 0,ROT_3: 0}
+        motion_list = [20, 0, 0, 0, 0,0]
         translate_steps(motion_list)
 
         time.sleep(3)
