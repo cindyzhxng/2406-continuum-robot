@@ -1,9 +1,34 @@
-from stepper_motor_controls import * 
+"""
+Main script for controlling the stepper motors of the robot via keyboard inputs.
+
+This script reads keyboard inputs and translates them into corresponding
+movements of the stepper motors. It imports functions from the stepper_motor_controls
+module to perform the motor movements.
+
+The keyboard inputs are mapped to specific movements of the stepper motors, such as
+translation and rotation, for different stages of the robot.
+
+"""
+
+import sys
+import termios
+import tty
+from stepper_motor_controls import *
 
 filedescriptors = termios.tcgetattr(sys.stdin)
 tty.setcbreak(sys.stdin)
 
+
 def keyboard_to_movement(move):
+    """
+    Function to convert keyboard inputs to motor movements.
+
+    Args:
+        move (str): The keyboard input representing the desired movement.
+
+    Returns:
+        None
+    """
     match move:
         case "a":
             print("1: we translate first stage")
@@ -65,13 +90,11 @@ def keyboard_to_movement(move):
         case _:
             print("Input is not supported.")
 
+
 try:
     while True:
-        move=sys.stdin.read(1)[0]
+        move = sys.stdin.read(1)[0]
         print("You pressed", move)
         keyboard_to_movement(move)
 except KeyboardInterrupt:
     termios.tcsetattr(sys.stdin, termios.TCSANOW, original_settings)
-
-
-
